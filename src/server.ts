@@ -11,8 +11,21 @@ const db = new DataBase('ncode_solutions.db', { verbose: console.log });
 
 const client = new InferenceClient(process.env.HF_TOKEN);
 
-function validation(storedSoliton: string, clientSolution: string) {
-  if (clientSolution.search(storedSoliton) != -1) {
+async function chatBot(prompt: string) {
+  const chatCompletion = await client.chatCompletion({
+    model: "meta-llama/Llama-3.1-8B-Instruct:novita",
+    messages: [
+      {
+        role: "user",
+        content: prompt,
+      },
+    ],
+  });
+  return chatCompletion.choices[0].message;
+}
+
+function validation(storedSolution: string, clientSolution: string) {
+  if (clientSolution == storedSolution) {
     return true;
   }
   else {
@@ -22,21 +35,13 @@ function validation(storedSoliton: string, clientSolution: string) {
 
 app.post('/api/chatBot', async (req: Request, res: Response) => {
   let data = req.body
-  const chatCompletion = await client.chatCompletion({
-    model: "meta-llama/Llama-3.1-8B-Instruct:novita",
-    messages: [
-      {
-        role: "user",
-        content: data.prompt,
-      },
-    ],
-  });
-  res.json({ 'Response': chatCompletion.choices[0].message });
+  let response = await chatBot(data.prompt)
+  res.json({ 'content': response.content })
 });
 
 app.post('/api/validator', (req: Request, res: Response) => {
   let data = req.body;
-  let item = db.prepare('SELECT * FROM problem_solutions WHERE lesson_no=? ').get(data.lessonNo) as any;
+  let item = db.prepare('SELECT * FROM problem_solutions WHERE lesson_no=? ').get(data.lesson) as any;
   if (validation(item.solution, data.output)) {
     res.send('pass');
   }
