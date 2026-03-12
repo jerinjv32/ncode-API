@@ -24,25 +24,57 @@ async function chatBot(prompt: string) {
   return chatCompletion.choices[0].message;
 }
 
-function validation(storedSolution: string, clientSolution: string) {
-  if (clientSolution == storedSolution) {
-    return true;
+function cachedRequest(prompt: string) {
+  try {
+    let result = db.prepare('SELECT response FROM cached_requests WHERE prompt=? ').get(prompt) as any
+    if (result) {
+      return result.response
+    }
+    else {
+      return false
+    }
   }
-  else {
-    return false;
+  catch (e) {
+    console.log('DB Error:', e);
+  }
+}
+
+function validation(storedSolution: string, clientSolution: string) {
+  try {
+    if (clientSolution.search(storedSolution) != -1) {
+      return true
+    }
+    else {
+      return false
+    }
+  }
+  catch (e) {
+    console.error('Validation Error:', e);
   }
 }
 
 app.post('/api/chatBot', async (req: Request, res: Response) => {
   let data = req.body
-  let response = await chatBot(data.prompt)
-  res.json({ 'content': response.content });
+  let available = cachedRequest(data.prompt)
+  try {
+    if (!available) {
+      let response = await chatBot(data.prompt)
+      db.prepare('INSERT INTO cached_requests (prompt, response) VALUES (?, ?)').run(data.prompt, response.content)
+      res.json({ 'content': response.content });
+    }
+    else {
+      res.json({ 'content': available })
+    }
+  } catch (e) {
+    console.error('Insertion Error:', e)
+  }
 });
 
 app.post('/api/validator', (req: Request, res: Response) => {
   let data = req.body;
+  let output = String(data.output)
   let item = db.prepare('SELECT * FROM problem_solutions WHERE lesson_no=? ').get(data.lesson) as any;
-  if (validation(item.solution, data.output)) {
+  if (validation(item.solution, output)) {
     res.send('pass');
   }
   else {
