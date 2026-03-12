@@ -36,7 +36,7 @@ function validation(storedSolution: string, clientSolution: string) {
 app.post('/api/chatBot', async (req: Request, res: Response) => {
   let data = req.body
   let response = await chatBot(data.prompt)
-  res.json({ 'content': response.content })
+  res.json({ 'content': response.content });
 });
 
 app.post('/api/validator', (req: Request, res: Response) => {
@@ -48,6 +48,27 @@ app.post('/api/validator', (req: Request, res: Response) => {
   else {
     res.send('fail');
   }
+});
+
+app.post('/api/hints', async (req: Request, res: Response) => {
+  let data = req.body;
+  let question = `A help on question which to be solved in python 3 is asked here. Guide them how they can solve this question within maximum
+   of 3 lines. Do not explain about how to install, do not include potential problems, do not add any greetings, act like wall which only returns
+   what it was asked, only answer as mentioned. The question might include info regarding an image, but only guide them through the question provide.
+   The image is irrelavent to your answer. So, do not mention about reading the images or similar things. And, the image given to the user will not
+   contain any mention of syntax nor will contain any code snippets. So, do not expect them to figure out from it. Give them hints not answer. Again:
+   1. Maximum of 3 lines of response.
+   2. Do not provide direct answer.
+   3. Only provide them hints of funcion or method to use which are inherentily available in python.
+   4. They will be beginners; therefore keep the hints as basic as possible.
+   5. Sometimes will be like riddles if couldn't understand, only mention about how to crack the question.
+   6. Do not provide any instruction to install any packages, libraries or anything.
+   7. If no solution was able to figure out by you then just tell them to use a pen and book. And try visualize the problem.
+   8. Do not mention about modules like speech recognition or image recognition or anything stick to basic stuff. Like literal basic python concepts.
+   9. Do not provide any direct code snippets example : print('hello') or anything like that, keep it to sentances only.
+   This the question: ` + data.question;
+  let response = await chatBot(question);
+  res.json({ 'content': response.content });
 });
 
 export default app;
