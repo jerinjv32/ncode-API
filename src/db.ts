@@ -4,7 +4,11 @@ const db = new DataBase('ncode_solutions.db', { verbose: console.log })
 db.prepare('CREATE TABLE IF NOT EXISTS problem_solutions(id INTEGER PRIMARY KEY, lesson_no INTEGER, solution TEXT )').run()
 db.prepare('CREATE TABLE IF NOT EXISTS cached_requests(id INTEGER PRIMARY KEY, prompt TEXT, response TEXT)').run()
 
-// db.prepare('INSERT INTO problem_solutions (lesson_no, solution) VALUES(?, ?)').run(1, '4534')
+// db.prepare('INSERT INTO problem_solutions (id, lesson_no, solution) VALUES(?, ?, ?)').run(1, 1, '4354')
+// db.prepare('INSERT INTO problem_solutions (id, lesson_no, solution) VALUES(?, ?, ?)').run(2, 2, `Red Green Yellow Blue`)
 // db.prepare('UPDATE problem_solutions SET solution=? WHERE lesson_no=?').run('4354', 1)
-console.log(db.prepare('SELECT * FROM problem_solutions where lesson_no=?').get(1))
-
+db.prepare('UPDATE problem_solutions SET solution=? WHERE lesson_no=?').run(`Red
+Green
+Yellow
+Blue`, 2);
+console.log(db.prepare('SELECT * FROM problem_solutions').all())

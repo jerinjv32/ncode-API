@@ -41,7 +41,7 @@ function cachedRequest(prompt: string) {
 
 function validation(storedSolution: string, clientSolution: string) {
   try {
-    if (clientSolution.search(storedSolution) != -1) {
+    if (clientSolution.search(new RegExp(storedSolution, 's')) != -1) {
       return true
     }
     else {
@@ -72,6 +72,8 @@ app.post('/api/chatBot', async (req: Request, res: Response) => {
 
 app.post('/api/validator', (req: Request, res: Response) => {
   let data = req.body;
+  let lessonNo = data.lesson
+  console.log(typeof lessonNo)
   let output = String(data.output)
   let item = db.prepare('SELECT * FROM problem_solutions WHERE lesson_no=? ').get(data.lesson) as any;
   if (validation(item.solution, output)) {
